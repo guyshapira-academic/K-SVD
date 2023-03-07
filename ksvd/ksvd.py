@@ -4,6 +4,8 @@ This module implements the K-SVD dictionary learning algorithm.
 import numpy as np
 from numpy.typing import NDArray
 
+from sklearn.linear_model import orthogonal_mp
+
 
 class KSVD:
     """
@@ -60,7 +62,7 @@ class KSVD:
 
         # Run the K-SVD algorithm.
         for _ in range(self.max_iter):
-            X_hat = self._fit_step()
+            X_hat = self._fit_step(X)
             if self._check_convergence(X, X_hat):
                 break
 
@@ -76,11 +78,45 @@ class KSVD:
         """
         return np.amax(np.linalg.norm(X - X_hat, axis=1)) < self.tol
 
-    def _fit_step(self) -> NDArray:
+    def _fit_step(self, X: NDArray) -> NDArray:
         """
         Perform a single iteration of the K-SVD algorithm.
 
         Returns:
             NDArray: Reconstructed data. Shape: (num_samples, num_features).
         """
-        pass
+        # Sparse Coding Stage
+        # Compute the sparse representation of the input data using OMP with
+        # the current dictionary.
+        X_reconstructed, coefs = self.transform(X, return_coefs=True)
+
+        # TODO: Codebook Update Stage
+
+        return X_reconstructed
+
+    def transform(self, X: NDArray, return_coefs: bool = False) -> NDArray:
+        """
+        Transform the input data using the OMP algorithm and the learned dictionary.
+
+        X (NDArray): Input data. Shape: (num_samples, num_features).
+        return_coefs (bool): If True, return the coefficients of the sparse representation.
+            Default: False.
+
+        Returns:
+            X_reconstructed (NDArray): Sparse representation of the input data.
+                Shape: (num_samples, num_coefs).
+            coefs (NDArray): Coefficients of the sparse representation.
+                Shape: (num_samples, num_coefs). Present only if return_coefs is True.
+        """
+        assert self.dictionary is not None, "The fit method has not been run."
+        assert X.shape[1] == self.num_features, (
+            "The number of features in the input data does not match the number "
+            "of features in the dictionary."
+        )
+
+        coefs = orthogonal_mp(self.dictionary.T, X.T, n_nonzero_coefs=self.num_coefs).T
+        X_reconstructed = coefs @ self.dictionary
+
+        if return_coefs:
+            return X_reconstructed, coefs
+        return X_reconstructed
