@@ -63,7 +63,9 @@ class KSVD:
         # Initialize the dictionary with random normalized samples from the input data.
 
         random_samples = X[np.random.choice(X.shape[0], self.k, replace=False), :]
-        self.dictionary = random_samples + 1e-3 * np.random.randn(self.k, self.num_features)
+        self.dictionary = random_samples + 1e-3 * np.random.randn(
+            self.k, self.num_features
+        )
         self.dictionary /= np.linalg.norm(self.dictionary, axis=1, keepdims=True)
 
         # Run the K-SVD algorithm.

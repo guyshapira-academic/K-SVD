@@ -2,3 +2,4 @@ numpy>=1.24.2
 setuptools>=67.1.0
 scikit-learn>=1.2.1
 pytest>=7.2.2
+tqdm>=4.65.0
