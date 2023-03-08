@@ -63,29 +63,33 @@ class KSVD:
         # Initialize the dictionary with random normalized samples from the input data.
 
         random_samples = X[np.random.choice(X.shape[0], self.k, replace=False), :]
-        self.dictionary = random_samples + 1e-3 * np.random.randn(
+        self.dictionary = random_samples + 1e-6 * np.random.randn(
             self.k, self.num_features
         )
         self.dictionary /= np.linalg.norm(self.dictionary, axis=1, keepdims=True)
 
         # Run the K-SVD algorithm.
-        for _ in tqdm(range(self.max_iter), disable=(verbose < 1), total=None):
+        it = trange(self.max_iter, disable=(verbose < 1), total=None)
+        for _ in it:
             X_hat = self._fit_step(X, verbose=verbose)
-            if self._check_convergence(X, X_hat):
+            err = KSVD._error(X, X_hat)
+            it.set_description(f"error: {err:.4f}")
+            if err < self.tol:
                 break
 
-    def _check_convergence(self, X: NDArray, X_hat: NDArray) -> bool:
+    @staticmethod
+    def _error(X: NDArray, X_hat: NDArray) -> float:
         """
-        Check if the algorithm has converged.
+        Compute the reconstruction error.
 
         Parameters:
             X (NDArray): Input data. Shape: (num_samples, num_features).
             X_hat (NDArray): Reconstructed data. Shape: (num_samples, num_features).
 
         Returns:
-            bool: True if the algorithm has converged, False otherwise.
+            float: Reconstruction error.
         """
-        return np.amax(np.linalg.norm(X - X_hat, axis=1)) < self.tol
+        return np.amax(np.linalg.norm(X - X_hat, axis=1), axis=0)
 
     def _fit_step(self, X: NDArray, verbose: int = 0) -> NDArray:
         """
@@ -105,7 +109,8 @@ class KSVD:
 
         # Update the dictionary using the sparse representation computed in the
         # previous step.
-        for k in trange(self.k, disable=(verbose < 2)):
+        it = trange(self.k, disable=(verbose < 2), leave=False)
+        for k in it:
             coefs = self._entry_update(X, coefs, k)
 
         X_reconstructed = coefs @ self.dictionary
@@ -157,7 +162,9 @@ class KSVD:
             "of features in the dictionary."
         )
 
-        coefs = orthogonal_mp(self.dictionary.T, X.T, n_nonzero_coefs=self.num_coefs).T
+        coefs = orthogonal_mp(
+            self.dictionary.T, X.T, n_nonzero_coefs=self.num_coefs, precompute="auto"
+        ).T
         X_reconstructed = coefs @ self.dictionary
 
         if return_coefs:
