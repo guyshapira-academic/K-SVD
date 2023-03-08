@@ -6,6 +6,8 @@ from numpy.typing import NDArray
 
 from sklearn.linear_model import orthogonal_mp
 
+from tqdm.auto import trange, tqdm
+
 
 class KSVD:
     """
@@ -41,11 +43,13 @@ class KSVD:
 
         self.dictionary = None
 
-    def fit(self, X: NDArray) -> None:
+    def fit(self, X: NDArray, verbose: int = 0) -> None:
         """
         Learn the dictionary from the input data.
 
-        X (NDArray): Input data. Shape: (num_samples, num_features).
+        Parameters:
+            X (NDArray): Input data. Shape: (num_samples, num_features).
+            verbose (int): Verbosity level. Default: 0.
         """
         assert X.shape[0] >= self.k, (
             "The number of samples in the training data is less than the number "
@@ -61,8 +65,8 @@ class KSVD:
         self.dictionary /= np.linalg.norm(self.dictionary, axis=1, keepdims=True)
 
         # Run the K-SVD algorithm.
-        for _ in range(self.max_iter):
-            X_hat = self._fit_step(X)
+        for _ in tqdm(range(self.max_iter), disable=(verbose < 1), total=None):
+            X_hat = self._fit_step(X, verbose=verbose)
             if self._check_convergence(X, X_hat):
                 break
 
@@ -70,17 +74,22 @@ class KSVD:
         """
         Check if the algorithm has converged.
 
-        X (NDArray): Input data. Shape: (num_samples, num_features).
-        X_hat (NDArray): Reconstructed data. Shape: (num_samples, num_features).
+        Parameters:
+            X (NDArray): Input data. Shape: (num_samples, num_features).
+            X_hat (NDArray): Reconstructed data. Shape: (num_samples, num_features).
 
         Returns:
             bool: True if the algorithm has converged, False otherwise.
         """
         return np.amax(np.linalg.norm(X - X_hat, axis=1)) < self.tol
 
-    def _fit_step(self, X: NDArray) -> NDArray:
+    def _fit_step(self, X: NDArray, verbose: int = 0) -> NDArray:
         """
         Perform a single iteration of the K-SVD algorithm.
+
+        Parameters:
+            X (NDArray): Input data. Shape: (num_samples, num_features).
+            verbose (int): Verbosity level. Default: 0.
 
         Returns:
             NDArray: Reconstructed data. Shape: (num_samples, num_features).
@@ -90,9 +99,39 @@ class KSVD:
         # the current dictionary.
         X_reconstructed, coefs = self.transform(X, return_coefs=True)
 
-        # TODO: Codebook Update Stage
+        # Update the dictionary using the sparse representation computed in the
+        # previous step.
+        for k in trange(self.k, disable=(verbose < 2)):
+            coefs = self._entry_update(X, coefs, k)
 
+        X_reconstructed = coefs @ self.dictionary
         return X_reconstructed
+
+    def _entry_update(self, X: NDArray, coefs: NDArray, k: int) -> NDArray:
+        """
+        Update the k-th entry of the dictionary.
+
+        X (NDArray): Input data. Shape: (num_samples, num_features).
+        coefs (NDArray): Coefficients of the sparse representation.
+            Shape: (num_samples, num_coefs).
+        k (int): Index of the entry to be updated.
+
+        Returns:
+            coefs (NDArray): Updated coefficients of the sparse representation.
+        """
+        Ek = X - coefs @ self.dictionary + coefs[:, k, None] @ self.dictionary[k, None]
+        Ek_R = Ek[coefs[:, k] != 0].T
+
+        if Ek_R.shape[0] == 0:
+            return
+
+        u, s, vh = np.linalg.svd(Ek_R, full_matrices=False)
+        self.dictionary[k] = u[:, 0]
+        try:
+            coefs[coefs[:, k] != 0, k] = s[0] * vh[0, :]
+        except ValueError:
+            raise
+        return coefs
 
     def transform(self, X: NDArray, return_coefs: bool = False) -> NDArray:
         """
