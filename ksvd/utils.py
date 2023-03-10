@@ -3,6 +3,7 @@ from pathlib import Path
 import numpy as np
 from numpy.typing import NDArray
 
+from sklearn import datasets
 from PIL import Image
 import einops
 
@@ -86,3 +87,18 @@ def load_dataset_from_dir(
         dataset.append(patches)
 
     return np.concatenate(dataset, axis=0)
+
+
+def load_faces(patch_size: int = 8) -> NDArray:
+    """Load Olivetti faces dataset.
+
+    Args:
+        patch_size: Size of patches.
+
+    Returns:
+        Dataset as numpy array.
+    """
+    X = datasets.fetch_olivetti_faces().data
+    X = einops.rearrange(X, "n (h w) -> n h w", h=64, w=64)
+    X = einops.rearrange(X, "n (h p1) (w p2) -> (n h w) (p1 p2)", p1=patch_size, p2=patch_size)
+    return X

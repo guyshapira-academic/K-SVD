@@ -2,15 +2,18 @@ import numpy as np
 from omegaconf import OmegaConf, DictConfig
 
 from ksvd import KSVD
-import utils
+try:
+    from ksvd import utils
+except ImportError:
+    import utils
 
 
 def main(cfg: DictConfig):
     # Load the training data.
-    X = utils.load_dataset_from_dir(**cfg.data)
+    X = utils.load_faces(patch_size=cfg.data.patch_size)
 
     # Random sample 1000 patches.
-    X = X[np.random.choice(X.shape[0], 1000, replace=False)]
+    X = X[np.random.choice(X.shape[0], 11000, replace=False)]
 
     # Initialize the K-SVD object.
     ksvd = KSVD(**cfg.model)

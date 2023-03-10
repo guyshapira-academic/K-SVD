@@ -1,6 +1,9 @@
 """
 This module implements the K-SVD dictionary learning algorithm.
 """
+from typing import Tuple
+from decimal import Decimal
+
 import numpy as np
 from numpy.typing import NDArray
 
@@ -71,9 +74,8 @@ class KSVD:
         # Run the K-SVD algorithm.
         it = trange(self.max_iter, disable=(verbose < 1), total=None)
         for _ in it:
-            X_hat = self._fit_step(X, verbose=verbose)
-            err = KSVD._error(X, X_hat)
-            it.set_description(f"error: {err:.4f}")
+            X_hat, err = self._fit_step(X, verbose=verbose)
+            it.set_description(f"error: {Decimal(err):.4E}")
             if err < self.tol:
                 break
 
@@ -89,9 +91,9 @@ class KSVD:
         Returns:
             float: Reconstruction error.
         """
-        return np.amax(np.linalg.norm(X - X_hat, axis=1), axis=0)
+        return (np.linalg.norm(X - X_hat, ord="fro") / np.linalg.norm(X, ord="fro")) ** 2
 
-    def _fit_step(self, X: NDArray, verbose: int = 0) -> NDArray:
+    def _fit_step(self, X: NDArray, verbose: int = 0) -> Tuple[NDArray, float]:
         """
         Perform a single iteration of the K-SVD algorithm.
 
@@ -107,6 +109,10 @@ class KSVD:
         # the current dictionary.
         X_reconstructed, coefs = self.transform(X, return_coefs=True)
 
+        err = KSVD._error(X, X_reconstructed)
+        if err < self.tol:
+            return X_reconstructed, err
+
         # Update the dictionary using the sparse representation computed in the
         # previous step.
         it = trange(self.k, disable=(verbose < 2), leave=False)
@@ -114,7 +120,7 @@ class KSVD:
             coefs = self._entry_update(X, coefs, k)
 
         X_reconstructed = coefs @ self.dictionary
-        return X_reconstructed
+        return X_reconstructed, err
 
     def _entry_update(self, X: NDArray, coefs: NDArray, k: int) -> NDArray:
         """
