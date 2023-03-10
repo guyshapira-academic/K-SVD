@@ -2,6 +2,7 @@ from pathlib import Path
 
 import numpy as np
 from numpy.typing import NDArray
+import matplotlib.pyplot as plt
 
 from sklearn import datasets
 from PIL import Image
@@ -102,3 +103,41 @@ def load_faces(patch_size: int = 8) -> NDArray:
     X = einops.rearrange(X, "n (h w) -> n h w", h=64, w=64)
     X = einops.rearrange(X, "n (h p1) (w p2) -> (n h w) (p1 p2)", p1=patch_size, p2=patch_size)
     return X
+
+
+def learned_dictionary_patches(dictionary: NDArray) -> NDArray:
+    patch_size = int(np.sqrt(dictionary.shape[1]))
+    patches = einops.rearrange(
+        dictionary, "n (h w) -> n h w", h=patch_size, w=patch_size
+    )
+
+    # Sort by variance.
+    variances = np.var(patches, axis=(1, 2))
+    sorted_indices = np.argsort(variances)[::-1]
+    patches = patches[sorted_indices]
+
+    return patches
+
+
+def display_patches(patches: NDArray) -> None:
+    """Display patches.
+
+    Args:
+        patches: Patches as numpy array.
+
+    Returns:
+        None.
+    """
+    if len(patches.shape) == 2:
+        patches = learned_dictionary_patches(patches)
+    n_patches = patches.shape[0]
+    n_cols = int(np.sqrt(n_patches))
+    n_rows = n_patches // n_cols
+
+    fig, axes = plt.subplots(n_rows, n_cols, figsize=(n_cols, n_rows))
+    for i in range(n_rows):
+        for j in range(n_cols):
+            axes[i, j].imshow(patches[i * n_cols + j], cmap="gray")
+            axes[i, j].axis("off")
+    fig.tight_layout()
+    plt.show()

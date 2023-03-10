@@ -13,13 +13,15 @@ def main(cfg: DictConfig):
     X = utils.load_faces(patch_size=cfg.data.patch_size)
 
     # Random sample 1000 patches.
-    X = X[np.random.choice(X.shape[0], 11000, replace=False)]
+    X = X[np.random.choice(X.shape[0], 1000, replace=False)]
 
     # Initialize the K-SVD object.
     ksvd = KSVD(**cfg.model)
 
     # Learn the dictionary.
     ksvd.fit(X, **cfg.fit)
+
+    utils.display_patches(ksvd.dictionary)
 
 
 if __name__ == '__main__':
