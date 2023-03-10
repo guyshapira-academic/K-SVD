@@ -4,12 +4,18 @@ This module implements the K-SVD dictionary learning algorithm.
 from typing import Tuple
 from decimal import Decimal
 
+import einops
 import numpy as np
 from numpy.typing import NDArray
 
 from sklearn.linear_model import orthogonal_mp
 
 from tqdm.auto import trange, tqdm
+
+try:
+    from ksvd import utils
+except ImportError:
+    import utils
 
 
 class KSVD:
@@ -91,7 +97,9 @@ class KSVD:
         Returns:
             float: Reconstruction error.
         """
-        return (np.linalg.norm(X - X_hat, ord="fro") / np.linalg.norm(X, ord="fro")) ** 2
+        return (
+            np.linalg.norm(X - X_hat, ord="fro") / np.linalg.norm(X, ord="fro")
+        ) ** 2
 
     def _fit_step(self, X: NDArray, verbose: int = 0) -> Tuple[NDArray, float]:
         """
@@ -176,3 +184,31 @@ class KSVD:
         if return_coefs:
             return X_reconstructed, coefs
         return X_reconstructed
+
+    def transform_image(self, image: NDArray) -> NDArray:
+        """
+        Transform the input image using the OMP algorithm and the learned dictionary.
+
+        Parameters:
+            image (NDArray): Input image. Shape: (height, width).
+
+        Returns:
+            image_reconstructed (NDArray): Sparse representation of the input image.
+                Shape: (height, width).
+        """
+        assert self.dictionary is not None, "The fit method has not been run."
+        assert image.ndim == 2, "The input image must be a 2D array."
+
+        height, width = image.shape
+
+        patch_size = int(np.sqrt(self.num_features))
+        patches = utils.image_to_patches(image, patch_size)
+        image_reconstructed = self.transform(patches)
+        image_reconstructed = einops.rearrange(
+            image_reconstructed,
+            "(h w) (p1 p2) -> (h p1) (w p2)",
+            p1=patch_size,
+            p2=patch_size,
+            h=height // patch_size
+        )
+        return image_reconstructed

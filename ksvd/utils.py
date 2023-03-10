@@ -100,9 +100,13 @@ def load_faces(patch_size: int = 8) -> NDArray:
         Dataset as numpy array.
     """
     X = datasets.fetch_olivetti_faces().data
+    sample_image = X[0].reshape(64, 64)
+    X = X[1:, :]
     X = einops.rearrange(X, "n (h w) -> n h w", h=64, w=64)
-    X = einops.rearrange(X, "n (h p1) (w p2) -> (n h w) (p1 p2)", p1=patch_size, p2=patch_size)
-    return X
+    X = einops.rearrange(
+        X, "n (h p1) (w p2) -> (n h w) (p1 p2)", p1=patch_size, p2=patch_size
+    )
+    return X, sample_image
 
 
 def learned_dictionary_patches(dictionary: NDArray) -> NDArray:
@@ -139,5 +143,24 @@ def display_patches(patches: NDArray) -> None:
         for j in range(n_cols):
             axes[i, j].imshow(patches[i * n_cols + j], cmap="gray")
             axes[i, j].axis("off")
+    fig.tight_layout()
+    plt.show()
+
+
+def display_images(*images: NDArray) -> None:
+    """Display images.
+
+    Args:
+        images: Images as numpy arrays.
+
+    Returns:
+        None.
+    """
+    n_images = len(images)
+
+    fig, axes = plt.subplots(nrows=1, ncols=n_images, figsize=(n_images, 1))
+    for i in range(n_images):
+        axes[i].imshow(images[i], cmap="gray")
+        axes[i].axis("off")
     fig.tight_layout()
     plt.show()
