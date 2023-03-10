@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import pytest
 
 from PIL import Image
@@ -25,3 +27,12 @@ def test_load_patches(image_path: str) -> None:
 
     patches = utils.image_to_patches(image, 8)
     assert patches.shape == (196, 64)
+
+
+def test_load_dataset_from_dir(image_path: str) -> None:
+    """
+    Test load_dataset_from_dir function.
+    """
+    folder = Path(image_path).parent
+    dataset = utils.load_dataset_from_dir(folder, 8)
+    assert dataset.shape == (196, 64)
