@@ -6,11 +6,15 @@ from numpy.typing import NDArray
 from sklearn.datasets import make_sparse_coded_signal
 
 from ksvd import KSVD
+try:
+    from ksvd import utils
+except ImportError:
+    import utils
 
 
 @pytest.fixture
 def random_signal():
-    return np.random.randn(1024, 64)
+    return np.random.randn(512, 64)
 
 
 @pytest.fixture
@@ -42,3 +46,13 @@ def test_ksvd(sparse_signal: NDArray):
     assert coefs.shape == (X.shape[0], D.shape[0])
 
     assert np.allclose(coefs @ ksvd.dictionary, X_reconstructed, atol=1e-6)
+
+
+def test_masked_transform(random_signal: NDArray):
+    ksvd = KSVD(max_iter=2, tol=1e-1)
+    ksvd.fit(random_signal, verbose=2)
+    mask = np.zeros_like(random_signal, dtype=bool)
+    X_reconstructed = ksvd.masked_transform(random_signal, mask)
+
+    assert np.allclose(X_reconstructed, random_signal, atol=1e-6)
+

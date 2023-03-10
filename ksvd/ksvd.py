@@ -3,6 +3,7 @@ This module implements the K-SVD dictionary learning algorithm.
 """
 from typing import Tuple
 from decimal import Decimal
+from copy import deepcopy
 
 import einops
 import numpy as np
@@ -212,3 +213,19 @@ class KSVD:
             h=height // patch_size
         )
         return image_reconstructed
+
+    def masked_transform(self, X: NDArray, mask: NDArray, verbose: int = 0) -> NDArray:
+        reconstructed_patches = list()
+        for i in trange(X.shape[0], disable=(verbose < 1), leave=False):
+            x = X[i]
+            m = mask[i]
+
+            dictionary = deepcopy(self.dictionary)
+            dictionary[:, ~m] = 0
+            x[~m] = 0
+            coefs = orthogonal_mp(
+                dictionary.T, x.T, n_nonzero_coefs=self.num_coefs, precompute="auto"
+            ).T
+            reconstructed_patch = coefs @ self.dictionary
+            reconstructed_patches.append(reconstructed_patch)
+        return np.array(reconstructed_patches)
