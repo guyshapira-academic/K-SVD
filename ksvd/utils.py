@@ -7,11 +7,28 @@ from PIL import Image
 import einops
 
 
-def load_image(path: str, rgb: bool = False) -> NDArray:
+def center_crop(image: NDArray, crop_size: int) -> NDArray:
+    """Center crop image.
+
+    Args:
+        image: Image as numpy array.
+        crop_size: Size of crop.
+
+    Returns:
+        Cropped image as numpy array.
+    """
+    h, w = image.shape[:2]
+    h_start = (h - crop_size) // 2
+    w_start = (w - crop_size) // 2
+    return image[h_start : h_start + crop_size, w_start : w_start + crop_size]
+
+
+def load_image(path: str, size: int = 168, rgb: bool = False) -> NDArray:
     """Load image from path and convert to numpy array.
 
     Args:
         path: Path to image.
+        size: Size of image.
         rgb: If True, load as RGB or grayscale, otherwise load as grayscale.
 
     Returns:
@@ -22,7 +39,15 @@ def load_image(path: str, rgb: bool = False) -> NDArray:
     else:
         image = Image.open(path).convert("L")
 
-    return np.array(image)
+    current_size = image.size
+    ratio = size / max(current_size)
+    new_size = tuple([int(x * ratio) for x in current_size])
+    image.resize(new_size)
+
+    image = np.array(image) / 255
+    image = center_crop(image, size)
+
+    return image
 
 
 def image_to_patches(image: NDArray, patch_size: int) -> NDArray:
@@ -41,13 +66,14 @@ def image_to_patches(image: NDArray, patch_size: int) -> NDArray:
 
 
 def load_dataset_from_dir(
-    path: str, patch_size: int, rgb: bool = False
+    path: str, patch_size: int, image_size: int = 168, rgb: bool = False
 ) -> NDArray:
     """Load dataset from directory.
 
     Args:
         path: Path to directory.
         patch_size: Size of patches.
+        image_size: Size of images.
         rgb: If True, load as RGB or grayscale, otherwise load as grayscale.
 
     Returns:
@@ -55,7 +81,7 @@ def load_dataset_from_dir(
     """
     dataset = []
     for image_path in Path(path).glob("*.png"):
-        image = load_image(image_path, rgb=rgb)
+        image = load_image(image_path, image_size, rgb=rgb)
         patches = image_to_patches(image, patch_size)
         dataset.append(patches)
 

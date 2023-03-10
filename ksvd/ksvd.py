@@ -131,8 +131,8 @@ class KSVD:
         Ek = X - coefs @ self.dictionary + coefs[:, k, None] @ self.dictionary[k, None]
         Ek_R = Ek[coefs[:, k] != 0].T
 
-        if Ek_R.shape[0] == 0:
-            return
+        if Ek_R.shape[1] == 0:
+            return coefs
 
         u, s, vh = np.linalg.svd(Ek_R, full_matrices=False)
         self.dictionary[k] = u[:, 0]
