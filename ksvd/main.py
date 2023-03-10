@@ -31,6 +31,16 @@ def main(cfg: DictConfig):
     mse = np.mean((sample_image - sample_image_reconstructed) ** 2)
     print(f"MSE: {mse:.4f}")
 
+    mask_idx = np.random.choice(sample_image.size, sample_image.size // 8, replace=False)
+    mask = np.zeros_like(sample_image, dtype=bool)
+    mask.ravel()[mask_idx] = True
+
+    sample_image_corrupted = sample_image.copy()
+    sample_image_corrupted[mask] = 0
+
+    sample_image_reconstructed = ksvd.masked_transform(sample_image_corrupted, mask)
+    utils.display_images(sample_image, sample_image_corrupted, sample_image_reconstructed)
+
 
 if __name__ == "__main__":
     try:

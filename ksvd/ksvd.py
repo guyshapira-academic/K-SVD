@@ -221,8 +221,8 @@ class KSVD:
             m = mask[i]
 
             dictionary = deepcopy(self.dictionary)
-            dictionary[:, ~m] = 0
-            x[~m] = 0
+            dictionary[:, m] = 0
+            x[m] = 0
             coefs = orthogonal_mp(
                 dictionary.T, x.T, n_nonzero_coefs=self.num_coefs, precompute="auto"
             ).T
