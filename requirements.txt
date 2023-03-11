@@ -6,3 +6,5 @@ tqdm>=4.65.0
 Pillow>=9.4.0
 einops>=0.6.0
 matplotlib>=3.4.3
+omegaconf>=2.3.0
+scikit-image>=0.20.0
