@@ -113,9 +113,7 @@ def load_faces(patch_size: int = 8, resize: Optional[int] = None) -> NDArray:
     if resize is not None:
         resized_images = list()
         for i in range(X.shape[0]):
-            resized_images.append(
-                transform.resize(X[i], (resize, resize))
-            )
+            resized_images.append(transform.resize(X[i], (resize, resize)))
         X = np.array(resized_images)
     sample_image = X[0]
     X = einops.rearrange(
@@ -207,9 +205,7 @@ def mae(x: NDArray, y: NDArray) -> float:
     return np.mean(np.abs(x - y))
 
 
-def random_mask(
-    shape: Tuple[int, int], ratio: int
-) -> NDArray:
+def random_mask(shape: Tuple[int, int], ratio: int) -> NDArray:
     """Generate random mask.
 
     Args:
@@ -229,9 +225,8 @@ def random_mask(
 
     return mask
 
-def corrupt_image(
-    image: NDArray, mask: NDArray
-) -> NDArray:
+
+def corrupt_image(image: NDArray, mask: NDArray) -> NDArray:
     """Corrupt image.
 
     Args:
