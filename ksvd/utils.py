@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict
 
 import numpy as np
 from numpy.typing import NDArray
@@ -168,23 +168,29 @@ def display_patches(
     plt.close()
 
 
-def display_images(*images: NDArray, show: bool = True, save: Optional[str]) -> None:
+def display_images(*images: NDArray, show: bool = True, save: Optional[str], metrics: Optional[Dict[str, float]] = None) -> None:
     """Display images.
 
     Args:
         images: Images as numpy arrays.
         show: If True, show images.
         save: If not None, save images to this path.
+        metrics: If not None, display metrics.
 
     Returns:
         None.
     """
     n_images = len(images)
 
-    fig, axes = plt.subplots(nrows=1, ncols=n_images, figsize=(n_images, 1))
+    fig, axes = plt.subplots(nrows=1, ncols=n_images, figsize=(2 * n_images, 2))
     for i in range(n_images):
         axes[i].imshow(images[i], cmap="gray", vmin=0, vmax=1)
-        axes[i].axis("off")
+        axes[i].set_axis_off()
+    if metrics is not None:
+        fig.suptitle(
+            f"RMSE: {metrics['RMSE']:.4f} \n MAE: {metrics['MAE']:.4f}",
+            fontsize=10,
+        )
     fig.tight_layout()
     if save is not None:
         plt.savefig(save)

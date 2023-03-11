@@ -71,21 +71,23 @@ def main(cfg: DictConfig):
         sample_image_reconstructed = ksvd.masked_image_transform(
             sample_image_corrupted, mask
         )
+        sample_image_reconstructed = np.where(mask, sample_image_reconstructed, sample_image_corrupted)
         save_path = os.path.join(output_dir, f"reconstruction-{ratio * 100}.png")
+        rmse = utils.rmse(sample_image, sample_image_reconstructed)
+        mae = utils.mae(sample_image, sample_image_reconstructed)
         if ratio == 0:
             utils.display_images(
-                sample_image, sample_image_reconstructed, show=False, save=save_path
+                sample_image, sample_image_reconstructed, show=False, save=save_path, metrics={'RMSE': rmse, 'MAE': mae}
             )
         else:
             utils.display_images(
-                sample_image,
                 sample_image_corrupted,
                 sample_image_reconstructed,
                 show=False,
                 save=save_path,
+                metrics={'RMSE': rmse, 'MAE': mae}
             )
-        rmse = utils.rmse(sample_image, sample_image_reconstructed)
-        mae = utils.mae(sample_image, sample_image_reconstructed)
+
         log_str = f"Reconstruction - {ratio * 100}%: RMSE: {rmse:.4f}, MAE: {mae:.4f}"
         logger.info(log_str)
         reconstruction_metrics.append([ratio, rmse, mae])
