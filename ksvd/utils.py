@@ -1,11 +1,12 @@
 from pathlib import Path
+from typing import Optional
 
 import numpy as np
 from numpy.typing import NDArray
 import matplotlib.pyplot as plt
 
 from sklearn import datasets
-from skimage.transform import resize
+from skimage import transform
 from PIL import Image
 import einops
 
@@ -97,19 +98,26 @@ def load_dataset_from_dir(
     return dataset, sample_image
 
 
-def load_faces(patch_size: int = 8) -> NDArray:
+def load_faces(patch_size: int = 8, resize: Optional[int] = None) -> NDArray:
     """Load Olivetti faces dataset.
 
     Args:
         patch_size: Size of patches.
+        resize: Resize images to this size.
 
     Returns:
         Dataset as numpy array.
     """
     X = datasets.fetch_olivetti_faces().data
-    sample_image = X[0].reshape(64, 64)
-    X = X[1:, :]
     X = einops.rearrange(X, "n (h w) -> n h w", h=64, w=64)
+    if resize is not None:
+        resized_images = list()
+        for i in range(X.shape[0]):
+            resized_images.append(
+                transform.resize(X[i], (resize, resize))
+            )
+        X = np.array(resized_images)
+    sample_image = X[0]
     X = einops.rearrange(
         X, "n (h p1) (w p2) -> (n h w) (p1 p2)", p1=patch_size, p2=patch_size
     )

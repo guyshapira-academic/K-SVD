@@ -12,7 +12,7 @@ except ImportError:
 
 def main(cfg: DictConfig):
     # Load the training data.
-    X, sample_image = utils.load_faces(patch_size=cfg.data.patch_size)
+    X, sample_image = utils.load_faces(patch_size=cfg.data.patch_size, resize=cfg.data.resize_images)
 
     # If restrict_dataset is set to True, only use a subset of the training data.
     if cfg.data.restrict_dataset is not None and X.shape[0] > cfg.data.restrict_dataset:
