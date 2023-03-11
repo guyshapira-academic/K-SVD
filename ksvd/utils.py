@@ -136,11 +136,15 @@ def learned_dictionary_patches(dictionary: NDArray) -> NDArray:
     return patches
 
 
-def display_patches(patches: NDArray) -> None:
+def display_patches(
+    patches: NDArray, show: bool = True, save: Optional[str] = None
+) -> None:
     """Display patches.
 
     Args:
         patches: Patches as numpy array.
+        show: If True, show patches.
+        save: If not None, save patches to this path.
 
     Returns:
         None.
@@ -157,14 +161,20 @@ def display_patches(patches: NDArray) -> None:
             axes[i, j].imshow(patches[i * n_cols + j], cmap="gray")
             axes[i, j].axis("off")
     fig.tight_layout()
-    plt.show()
+    if save is not None:
+        plt.savefig(save)
+    if show:
+        plt.show()
+    plt.close()
 
 
-def display_images(*images: NDArray) -> None:
+def display_images(*images: NDArray, show: bool = True, save: Optional[str]) -> None:
     """Display images.
 
     Args:
         images: Images as numpy arrays.
+        show: If True, show images.
+        save: If not None, save images to this path.
 
     Returns:
         None.
@@ -176,7 +186,11 @@ def display_images(*images: NDArray) -> None:
         axes[i].imshow(images[i], cmap="gray", vmin=0, vmax=1)
         axes[i].axis("off")
     fig.tight_layout()
-    plt.show()
+    if save is not None:
+        plt.savefig(save)
+    if show:
+        plt.show()
+    plt.close()
 
 
 def rmse(x: NDArray, y: NDArray) -> float:
