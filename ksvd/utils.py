@@ -5,6 +5,7 @@ from numpy.typing import NDArray
 import matplotlib.pyplot as plt
 
 from sklearn import datasets
+from skimage.transform import resize
 from PIL import Image
 import einops
 
@@ -25,7 +26,7 @@ def center_crop(image: NDArray, crop_size: int) -> NDArray:
     return image[h_start : h_start + crop_size, w_start : w_start + crop_size]
 
 
-def load_image(path: str, size: int = 168, rgb: bool = False) -> NDArray:
+def load_image(path: str, size: int = 256, rgb: bool = False) -> NDArray:
     """Load image from path and convert to numpy array.
 
     Args:
@@ -68,7 +69,7 @@ def image_to_patches(image: NDArray, patch_size: int) -> NDArray:
 
 
 def load_dataset_from_dir(
-    path: str, patch_size: int, image_size: int = 168, rgb: bool = False
+    path: str, patch_size: int, image_size: int = 256, rgb: bool = False
 ) -> NDArray:
     """Load dataset from directory.
 
@@ -82,12 +83,18 @@ def load_dataset_from_dir(
         Dataset as numpy array.
     """
     dataset = []
-    for image_path in Path(path).glob("*.png"):
+    sample_image = None
+    for i, image_path in enumerate(Path(path).glob("*_HR.png")):
         image = load_image(image_path, image_size, rgb=rgb)
-        patches = image_to_patches(image, patch_size)
-        dataset.append(patches)
+        if i == 0:
+            sample_image = image
+        else:
+            patches = image_to_patches(image, patch_size)
+            dataset.append(patches)
 
-    return np.concatenate(dataset, axis=0)
+    dataset = np.concatenate(dataset[1:], axis=0)
+
+    return dataset, sample_image
 
 
 def load_faces(patch_size: int = 8) -> NDArray:
@@ -160,7 +167,7 @@ def display_images(*images: NDArray) -> None:
 
     fig, axes = plt.subplots(nrows=1, ncols=n_images, figsize=(n_images, 1))
     for i in range(n_images):
-        axes[i].imshow(images[i], cmap="gray")
+        axes[i].imshow(images[i], cmap="gray", vmin=0, vmax=1)
         axes[i].axis("off")
     fig.tight_layout()
     plt.show()

@@ -6,6 +6,7 @@ from numpy.typing import NDArray
 from sklearn.datasets import make_sparse_coded_signal
 
 from ksvd import KSVD
+
 try:
     from ksvd import utils
 except ImportError:
@@ -55,4 +56,3 @@ def test_masked_transform(random_signal: NDArray):
     X_reconstructed = ksvd.masked_transform(random_signal, mask)
 
     assert np.allclose(X_reconstructed, random_signal, atol=1e-6)
-

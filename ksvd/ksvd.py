@@ -210,7 +210,7 @@ class KSVD:
             "(h w) (p1 p2) -> (h p1) (w p2)",
             p1=patch_size,
             p2=patch_size,
-            h=height // patch_size
+            h=height // patch_size,
         )
         return image_reconstructed
 
@@ -229,3 +229,19 @@ class KSVD:
             reconstructed_patch = coefs @ self.dictionary
             reconstructed_patches.append(reconstructed_patch)
         return np.array(reconstructed_patches)
+
+    def masked_image_transform(
+        self, image: NDArray, mask: NDArray, verbose: int = 0
+    ) -> NDArray:
+        patch_size = int(np.sqrt(self.num_features))
+        patches = utils.image_to_patches(image, patch_size)
+        mask_patches = utils.image_to_patches(mask, patch_size)
+        reconstructed_patches = self.masked_transform(patches, mask_patches, verbose)
+        image_reconstructed = einops.rearrange(
+            reconstructed_patches,
+            "(h w) (p1 p2) -> (h p1) (w p2)",
+            p1=patch_size,
+            p2=patch_size,
+            h=image.shape[0] // patch_size,
+        )
+        return image_reconstructed
