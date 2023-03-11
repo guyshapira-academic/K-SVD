@@ -53,10 +53,7 @@ def main(cfg: DictConfig):
         with open(cfg.save_model, "wb") as f:
             pickle.dump(ksvd, f)
 
-    utils.display_patches(ksvd.dictionary, show=False, save="dictionary.png")
-
-    # sample_image_reconstructed = ksvd.transform_image(sample_image)
-    # utils.display_images(sample_image, sample_image_reconstructed, show=False, save="replication.png")
+    utils.display_patches(ksvd.dictionary, show=False, save=os.path.join(output_dir, "dictionary.png"))
 
     # Evaluate reconstruction task
     reconstruction_metrics = list()
