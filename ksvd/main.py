@@ -1,10 +1,12 @@
 import os
 import logging
 import pickle
+import csv
 
 import numpy as np
 from omegaconf import DictConfig
 import hydra
+import tabulate
 
 from ksvd import KSVD
 
@@ -57,6 +59,8 @@ def main(cfg: DictConfig):
     # utils.display_images(sample_image, sample_image_reconstructed, show=False, save="replication.png")
 
     # Evaluate reconstruction task
+    reconstruction_metrics = list()
+    reconstruction_metrics.append(["corruption_ratio", "RMSE", "MAE"])
     for ratio in cfg.eval.corruption_ratios:
         mask = utils.random_mask(sample_image.shape, ratio)
         sample_image_corrupted = utils.corrupt_image(sample_image, mask)
@@ -80,6 +84,13 @@ def main(cfg: DictConfig):
         mae = utils.mae(sample_image, sample_image_reconstructed)
         log_str = f"Reconstruction - {ratio * 100}%: RMSE: {rmse:.4f}, MAE: {mae:.4f}"
         logger.info(log_str)
+        reconstruction_metrics.append([ratio, rmse, mae])
+    # log reconstruction to csv
+    with open(os.path.join(output_dir, "reconstruction.csv"), "w") as f:
+        writer = csv.writer(f)
+        writer.writerows(reconstruction_metrics)
+    reconstruction_table = tabulate.tabulate(reconstruction_metrics, headers="firstrow", tablefmt="github")
+    logger.info(f"Reconstruction Results:\n{reconstruction_table}")
 
 
 if __name__ == "__main__":
