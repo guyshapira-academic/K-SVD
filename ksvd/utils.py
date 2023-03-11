@@ -254,3 +254,26 @@ def corrupt_image(image: NDArray, mask: NDArray) -> NDArray:
     corrupted_image[mask] = 0
 
     return corrupted_image
+
+
+def display_error_log(
+    error_log: NDArray, show: bool = False, save: Optional[str] = None
+) -> None:
+    """Display error log.
+
+    Args:
+        error_log: Error log as numpy array.
+        show: If True, show error log.
+        save: If not None, save error log to this path.
+
+    Returns:
+        None.
+    """
+    plt.plot(error_log)
+    plt.xlabel("Iteration")
+    plt.ylabel("Reconstruction Error")
+    if save is not None:
+        plt.savefig(save)
+    if show:
+        plt.show()
+    plt.close()

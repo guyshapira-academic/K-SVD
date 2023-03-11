@@ -1,7 +1,7 @@
 """
 This module implements the K-SVD dictionary learning algorithm.
 """
-from typing import Tuple
+from typing import Tuple, List
 from decimal import Decimal
 from copy import deepcopy
 
@@ -53,13 +53,16 @@ class KSVD:
 
         self.dictionary = None
 
-    def fit(self, X: NDArray, verbose: int = 0) -> None:
+    def fit(self, X: NDArray, verbose: int = 0) -> List[float]:
         """
         Learn the dictionary from the input data.
 
         Parameters:
             X (NDArray): Input data. Shape: (num_samples, num_features).
             verbose (int): Verbosity level. Default: 0.
+
+        Returns:
+            List[float]: The reconstruction error at each iteration.
         """
         assert X.shape[0] >= self.k, (
             "The number of samples in the training data is less than the number "
@@ -79,12 +82,15 @@ class KSVD:
         self.dictionary /= np.linalg.norm(self.dictionary, axis=1, keepdims=True)
 
         # Run the K-SVD algorithm.
+        err_log = list()
         it = trange(self.max_iter, disable=(verbose < 1), total=None)
         for _ in it:
             X_hat, err = self._fit_step(X, verbose=verbose)
             it.set_description(f"error: {Decimal(err):.4E}")
+            err_log.append(err)
             if err < self.tol:
                 break
+        return err_log
 
     @staticmethod
     def _error(X: NDArray, X_hat: NDArray) -> float:
@@ -98,9 +104,7 @@ class KSVD:
         Returns:
             float: Reconstruction error.
         """
-        return (
-            np.linalg.norm(X - X_hat, ord="fro") / np.linalg.norm(X, ord="fro")
-        ) ** 2
+        return (np.linalg.norm(X - X_hat, ord="fro") / X.shape[1]) ** 2
 
     def _fit_step(self, X: NDArray, verbose: int = 0) -> Tuple[NDArray, float]:
         """
@@ -112,6 +116,7 @@ class KSVD:
 
         Returns:
             NDArray: Reconstructed data. Shape: (num_samples, num_features).
+            float: Reconstruction error.
         """
         # Sparse Coding Stage
         # Compute the sparse representation of the input data using OMP with

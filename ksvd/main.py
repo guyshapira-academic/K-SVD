@@ -46,7 +46,12 @@ def main(cfg: DictConfig):
         ksvd = KSVD(**cfg.model)
 
         # Learn the dictionary.
-        ksvd.fit(X, **cfg.fit)
+        err_log = ksvd.fit(X, **cfg.fit)
+        err_log = np.array(err_log)
+        np.savetxt(os.path.join(output_dir, "error_log.csv"), err_log, delimiter=",")
+        utils.display_error_log(
+            err_log, show=False, save=os.path.join(output_dir, "error_log.png")
+        )
 
     # Save the model.
     if cfg.save_model:
