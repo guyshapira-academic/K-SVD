@@ -4,6 +4,8 @@ import pickle
 import csv
 
 import numpy as np
+from sklearn import datasets
+import matplotlib.pyplot as plt
 from omegaconf import DictConfig
 import hydra
 import tabulate
@@ -64,6 +66,7 @@ def main(cfg: DictConfig):
 
     # Evaluate reconstruction task
     reconstruction_metrics = list()
+    rmse_list = list()
     reconstruction_metrics.append(["corruption_ratio", "RMSE", "MAE"])
     for ratio in cfg.eval.corruption_ratios:
         mask = utils.random_mask(sample_image.shape, ratio)
@@ -89,6 +92,7 @@ def main(cfg: DictConfig):
             )
 
         log_str = f"Reconstruction - {ratio * 100}%: RMSE: {rmse:.4f}, MAE: {mae:.4f}"
+        rmse_list.append(rmse)
         logger.info(log_str)
         reconstruction_metrics.append([ratio, rmse, mae])
     # log reconstruction to csv
@@ -99,6 +103,12 @@ def main(cfg: DictConfig):
         reconstruction_metrics, headers="firstrow", tablefmt="github"
     )
     logger.info(f"Reconstruction Results:\n{reconstruction_table}")
+
+    # plot reconstruction error vs corruption ratio
+    plt.plot(cfg.eval.corruption_ratios, rmse_list)
+    plt.xlabel("Corruption Ratio")
+    plt.ylabel("RMSE")
+    plt.savefig(os.path.join(output_dir, "reconstruction_error.png"))
 
 
 if __name__ == "__main__":
