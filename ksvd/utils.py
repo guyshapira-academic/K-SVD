@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Tuple
 
 import numpy as np
 from numpy.typing import NDArray
@@ -171,3 +172,69 @@ def display_images(*images: NDArray) -> None:
         axes[i].axis("off")
     fig.tight_layout()
     plt.show()
+
+
+def rmse(x: NDArray, y: NDArray) -> float:
+    """Compute root mean squared error.
+
+    Args:
+        x: First array.
+        y: Second array.
+
+    Returns:
+        Root mean squared error.
+    """
+    return np.sqrt(np.mean((x - y) ** 2))
+
+
+def mae(x: NDArray, y: NDArray) -> float:
+    """Compute mean absolute error.
+
+    Args:
+        x: First array.
+        y: Second array.
+
+    Returns:
+        Mean absolute error.
+    """
+    return np.mean(np.abs(x - y))
+
+
+def random_mask(
+    shape: Tuple[int, int], ratio: int
+) -> NDArray:
+    """Generate random mask.
+
+    Args:
+        shape: Shape of mask.
+        ratio: Ratio of masked values.
+
+    Returns:
+        Mask as numpy array.
+    """
+    mask = np.zeros(shape)
+    n_masked = int(np.prod(shape) * ratio)
+    indices = np.random.choice(np.prod(shape), n_masked, replace=False)
+    mask = np.reshape(mask, -1)
+    mask[indices] = 1
+    mask = np.reshape(mask, shape)
+    mask = mask.astype(bool)
+
+    return mask
+
+def corrupt_image(
+    image: NDArray, mask: NDArray
+) -> NDArray:
+    """Corrupt image.
+
+    Args:
+        image: Image as numpy array.
+        mask: Mask as numpy array.
+
+    Returns:
+        Corrupted image as numpy array.
+    """
+    corrupted_image = image.copy()
+    corrupted_image[mask] = 0
+
+    return corrupted_image

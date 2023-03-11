@@ -29,24 +29,26 @@ def main(cfg: DictConfig):
     sample_image_reconstructed = ksvd.transform_image(sample_image)
     utils.display_images(sample_image, sample_image_reconstructed)
 
-    mse = np.mean((sample_image - sample_image_reconstructed) ** 2)
-    print(f"MSE: {mse:.4f}")
 
-    mask_idx = np.random.choice(
-        sample_image.size, sample_image.size // 4, replace=False
-    )
-    mask = np.zeros_like(sample_image, dtype=bool)
-    mask.ravel()[mask_idx] = True
-
-    sample_image_corrupted = sample_image.copy()
-    sample_image_corrupted[mask] = 0
-
-    sample_image_reconstructed = ksvd.masked_image_transform(
-        sample_image, mask
-    )
-    utils.display_images(
-        sample_image, sample_image_corrupted, sample_image_reconstructed
-    )
+    for ratio in [0, 0.3, 0.5, 0.7]:
+        print(f"\nRatio: {ratio}")
+        mask = utils.random_mask(sample_image.shape, ratio)
+        sample_image_corrupted = utils.corrupt_image(sample_image, mask)
+        sample_image_reconstructed = ksvd.masked_image_transform(
+            sample_image_corrupted, mask
+        )
+        if ratio == 0:
+            utils.display_images(
+                sample_image, sample_image_corrupted, sample_image_reconstructed
+            )
+        else:
+            utils.display_images(
+                sample_image, sample_image_corrupted, sample_image_reconstructed
+            )
+        rmse = utils.rmse(sample_image, sample_image_reconstructed)
+        print(f"RMSE: {rmse:.4f}")
+        mae = utils.mae(sample_image, sample_image_reconstructed)
+        print(f"MAE: {mae:.4f}")
 
 
 if __name__ == "__main__":
