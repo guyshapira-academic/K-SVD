@@ -1,0 +1,26 @@
+use_pretrained: null
+save_model: true
+data:
+  patch_size: 8
+  restrict_dataset: 11000
+  resize_images: 112
+model:
+  k: 441
+  num_features: 64
+  num_coefs: 10
+  max_iter: 500
+  tol: 0.000001
+fit:
+  verbose: 2
+eval:
+  corruption_ratios:
+    - 0.0
+    - 0.1
+    - 0.2
+    - 0.3
+    - 0.4
+    - 0.5
+    - 0.6
+    - 0.7
+    - 0.8
+    - 0.9
