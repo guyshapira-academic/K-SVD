@@ -49,8 +49,8 @@ def main(cfg: DictConfig):
         ksvd.fit(X, **cfg.fit)
 
     # Save the model.
-    if cfg.save_model is not None:
-        with open(cfg.save_model, "wb") as f:
+    if cfg.save_model:
+        with open(os.path.join(output_dir, "model.pkl"), "wb") as f:
             pickle.dump(ksvd, f)
 
     utils.display_patches(ksvd.dictionary, show=False, save=os.path.join(output_dir, "dictionary.png"))
