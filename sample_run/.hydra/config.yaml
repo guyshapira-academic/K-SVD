@@ -1,26 +1,3 @@
-use_pretrained: null
-save_model: true
-data:
-  patch_size: 8
-  restrict_dataset: 11000
-  resize_images: 112
-model:
-  k: 441
-  num_features: 64
-  num_coefs: 10
-  max_iter: 100
-  tol: 1.0e-06
-fit:
-  verbose: 2
-eval:
-  corruption_ratios:
-  - 0.0
-  - 0.1
-  - 0.2
-  - 0.3
-  - 0.4
-  - 0.5
-  - 0.6
-  - 0.7
-  - 0.8
-  - 0.9
+version https://git-lfs.github.com/spec/v1
+oid sha256:6d56f7e6a12ef97027a7d1002a7ef24cb2804694ca8bc5f6fc87ee262f696080
+size 314
