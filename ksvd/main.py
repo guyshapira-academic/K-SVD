@@ -53,7 +53,9 @@ def main(cfg: DictConfig):
         with open(os.path.join(output_dir, "model.pkl"), "wb") as f:
             pickle.dump(ksvd, f)
 
-    utils.display_patches(ksvd.dictionary, show=False, save=os.path.join(output_dir, "dictionary.png"))
+    utils.display_patches(
+        ksvd.dictionary, show=False, save=os.path.join(output_dir, "dictionary.png")
+    )
 
     # Evaluate reconstruction task
     reconstruction_metrics = list()
@@ -86,7 +88,9 @@ def main(cfg: DictConfig):
     with open(os.path.join(output_dir, "reconstruction.csv"), "w") as f:
         writer = csv.writer(f)
         writer.writerows(reconstruction_metrics)
-    reconstruction_table = tabulate.tabulate(reconstruction_metrics, headers="firstrow", tablefmt="github")
+    reconstruction_table = tabulate.tabulate(
+        reconstruction_metrics, headers="firstrow", tablefmt="github"
+    )
     logger.info(f"Reconstruction Results:\n{reconstruction_table}")
 
 
