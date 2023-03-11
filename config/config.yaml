@@ -1,4 +1,4 @@
-use_pretrained: null
+use_pretrained: "sample_run/model.pkl"
 save_model: true
 data:
   patch_size: 8

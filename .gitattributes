@@ -1,0 +1,2 @@
+sample_run/* filter=lfs diff=lfs merge=lfs -text
+sample_run/**/* filter=lfs diff=lfs merge=lfs -text
