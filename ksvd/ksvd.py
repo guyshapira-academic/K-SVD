@@ -13,7 +13,10 @@ from sklearn.linear_model import orthogonal_mp
 
 from tqdm.auto import trange, tqdm
 
-from ksvd import utils
+try:
+    from ksvd import utils
+except ImportError:
+    import utils
 
 
 class KSVD:

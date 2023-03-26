@@ -2,6 +2,8 @@ import os
 import logging
 import pickle
 import csv
+import sys
+import warnings
 
 import numpy as np
 from sklearn import datasets
@@ -10,7 +12,12 @@ from omegaconf import DictConfig
 import hydra
 import tabulate
 
-from ksvd import KSVD
+try:
+    from ksvd import KSVD
+    import ksvd
+    sys.modules['ksvd.ksvd'] = ksvd
+except ImportError:
+    from ksvd.ksvd import KSVD
 
 try:
     from ksvd import utils
@@ -112,4 +119,5 @@ def main(cfg: DictConfig):
 
 
 if __name__ == "__main__":
+    warnings.simplefilter("ignore")
     main()
